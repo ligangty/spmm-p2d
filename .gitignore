@@ -1,0 +1,17 @@
+# python
+__pycache__
+.eggs
+*.egg-info
+venv
+dist
+build
+*.pyc
+.coverage
+coverage
+.tox
+
+# golang
+bin
+
+# ide
+.vscode
