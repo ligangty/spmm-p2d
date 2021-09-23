@@ -9,13 +9,13 @@ import (
 )
 
 func main() {
-	run()
+	run(3)
 }
 
-func run() {
+func run(top int) {
 	htmlContent := getGithubTrending()
 	// htmlContent := getGithubTrendingLocal()
-	reposInfo := parseContent(htmlContent, 3)
+	reposInfo := parseContent(htmlContent, top)
 	for _, repoInfo := range reposInfo {
 		fmt.Printf("Repo:        %s\n", repoInfo["url"])
 		fmt.Printf("Description: %s\n", repoInfo["description"])
@@ -47,4 +47,6 @@ func run() {
 
 	content, _ := ioutil.ReadAll(f)
 	fmt.Println(string(content))
+
+	os.RemoveAll(repoLocalPath)
 }

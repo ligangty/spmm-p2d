@@ -24,10 +24,3 @@ func getGithubTrending() string {
 	htmlContent := string(htmlContentByte)
 	return htmlContent
 }
-
-func getGithubTrendingLocal() string {
-	f, _ := os.Open("./test.html")
-	defer f.Close()
-	content, _ := ioutil.ReadAll(f)
-	return string(content)
-}

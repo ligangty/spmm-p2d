@@ -1,12 +1,12 @@
 from parse_html import parseContent
-from get_content import get_github_trending_local, get_github_trending
+from get_content import get_github_trending
 from git_ops import download_repo
 import os
 import shutil
 
-def run():
+def run(top):
     content = get_github_trending()
-    reposInfo = parseContent(content, 3)
+    reposInfo = parseContent(content, top)
     for repoInfo in reposInfo:
         print(f'Repo:        {repoInfo["url"]}')
         print(f'Description: {repoInfo["description"]}')
@@ -35,4 +35,4 @@ def run():
     shutil.rmtree(repoLocalPath)
     
 if __name__=="__main__":
-    run()
+    run(3)

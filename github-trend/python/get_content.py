@@ -8,6 +8,3 @@ def get_github_trending() -> str:
     if r.status_code==200:
         return r.text
     
-def get_github_trending_local() -> str:
-    with open("./test.html") as f:
-        return f.read()
