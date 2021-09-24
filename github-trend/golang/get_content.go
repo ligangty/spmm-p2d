@@ -10,6 +10,7 @@ import (
 const GITHUB_TREANDING = "https://github.com/trending"
 
 func getGithubTrending() string {
+	fmt.Printf("Start requesting %s", GITHUB_TREANDING)
 	response, err := http.Get(GITHUB_TREANDING)
 	if err != nil {
 		fmt.Printf("Error to access github trending page due to %s", err)

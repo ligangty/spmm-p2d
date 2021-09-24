@@ -6,15 +6,27 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
+	"time"
 )
 
 func main() {
+	// run first one
 	run(3)
+	TIME_FORMAT := "15:04:05"
+	INTERVAL := 30 * time.Second
+	ticker := time.NewTicker(INTERVAL)
+	next := time.Now().Add(INTERVAL)
+	fmt.Printf("Next invoke will happen at %v\n\n", next.Format(TIME_FORMAT))
+	for t := range ticker.C {
+		next := time.Now().Add(INTERVAL)
+		fmt.Println("Invoked at ", t.Format(TIME_FORMAT))
+		run(3)
+		fmt.Printf("Next invoke will happen at %v\n\n", next.Format(TIME_FORMAT))
+	}
 }
 
 func run(top int) {
 	htmlContent := getGithubTrending()
-	// htmlContent := getGithubTrendingLocal()
 	reposInfo := parseContent(htmlContent, top)
 	for _, repoInfo := range reposInfo {
 		fmt.Printf("Repo:        %s\n", repoInfo["url"])
@@ -27,6 +39,7 @@ func run(top int) {
 
 	gitURL := fmt.Sprintf("https://github.com/%s", reposInfo[0]["url"])
 	repoLocalPath := DownloadRepo(gitURL)
+	defer os.RemoveAll(repoLocalPath)
 
 	readme := ""
 	filepath.Walk(repoLocalPath, func(path string, info os.FileInfo, err error) error {
@@ -47,6 +60,5 @@ func run(top int) {
 
 	content, _ := ioutil.ReadAll(f)
 	fmt.Println(string(content))
-
-	os.RemoveAll(repoLocalPath)
+	fmt.Print("\n\n")
 }
