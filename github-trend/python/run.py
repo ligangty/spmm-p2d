@@ -1,8 +1,11 @@
 from parse_html import parseContent
 from get_content import get_github_trending
 from git_ops import download_repo
+from repeated_timer import RepeatedTimer
+import time
 import os
 import shutil
+import tempfile
 
 def run(top):
     content = get_github_trending()
@@ -15,7 +18,8 @@ def run(top):
         print(f'Fork:        {repoInfo["fork"]}' )
         print()
     gitURL = f'https://github.com/{reposInfo[0]["url"]}'
-    repoLocalPath = download_repo(gitURL)
+    temp_dir = tempfile.mkdtemp(prefix='trend-')
+    repoLocalPath = download_repo(gitURL, temp_dir)
     
     readme = ""
     for (dir,_,names) in os.walk(repoLocalPath):
@@ -32,7 +36,13 @@ def run(top):
     with open(readme) as f:
         print(f.read())        
     
-    shutil.rmtree(repoLocalPath)
+    print(f'Cleaning temp dirs {temp_dir}')
+    shutil.rmtree(temp_dir)
     
 if __name__=="__main__":
-    run(3)
+    run(3) # run first time
+    rt = RepeatedTimer(30, run, 3) # it auto-starts, no need of rt.start()
+    try:
+        time.sleep(3600) # your long-running job goes here...
+    finally:
+        rt.stop() # better in a try/finally block to make sure the program ends!

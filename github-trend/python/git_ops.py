@@ -1,10 +1,8 @@
 from git import Repo
-import tempfile
-import os
 
-def download_repo(git_url: str)-> str:
+def download_repo(git_url: str, temp_dir: str)-> str:
+    print(f'Start downloading git repo {git_url}')
     git_dir = get_git_dir(git_url)
-    temp_dir = tempfile.mkdtemp(prefix='')
     dir = f'{temp_dir}/{git_dir}'
     Repo.clone_from(git_url, dir)
     return dir
