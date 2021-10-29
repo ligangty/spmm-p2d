@@ -15,3 +15,8 @@ bin
 
 # ide
 .vscode
+
+# node
+build/*
+node_modules
+yarn-error.log

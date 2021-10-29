@@ -1,0 +1,13 @@
+version: '2'
+
+services:
+  postgresql:
+    image: 'bitnami/postgresql:latest'
+    ports:
+      - '5432:5432'
+    volumes:
+      - /tmp/bitnami/postgresql:/bitnami/postgresql
+    # networks:
+    #   - app-tier
+    environment:
+      - POSTGRESQL_PASSWORD=postgres  
