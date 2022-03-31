@@ -12,13 +12,13 @@ import (
 	"k8s.io/client-go/util/homedir"
 )
 
-func listPodsCmd() *cobra.Command {
+func listDeploymentsCmd() *cobra.Command {
 	var kubeCfg, project string
 	podsCmd := &cobra.Command{
-		Use:   "pods",
-		Short: "List pods",
+		Use:   "deployments",
+		Short: "List Deployment",
 		Run: func(cmd *cobra.Command, args []string) {
-			doListPods(kubeCfg, project)
+			doListDeployments(kubeCfg, project)
 		},
 	}
 	if home := homedir.HomeDir(); home != "" {
@@ -31,7 +31,7 @@ func listPodsCmd() *cobra.Command {
 	return podsCmd
 }
 
-func doListPods(kubeconfig, project string) {
+func doListDeployments(kubeconfig, project string) {
 
 	// use the current context in kubeconfig
 	config, err := clientcmd.BuildConfigFromFlags("", kubeconfig)
@@ -45,14 +45,13 @@ func doListPods(kubeconfig, project string) {
 		panic(err.Error())
 	}
 	namespace := project
-	pods, err := clientset.CoreV1().Pods(namespace).List(context.TODO(), metav1.ListOptions{})
+	dps, err := clientset.AppsV1().Deployments(namespace).List(context.TODO(), metav1.ListOptions{})
 	if err != nil {
 		panic(err.Error())
 	}
-	fmt.Printf("There are %d pods in the project %s\n\n", len(pods.Items), namespace)
-	for _, p := range pods.Items {
+	fmt.Printf("There are %d Deployments in the project %s\n\n", len(dps.Items), namespace)
+	for _, p := range dps.Items {
 		fmt.Print(p.ObjectMeta.Name + "\t")
-		fmt.Print(p.Status.Phase)
 		fmt.Println()
 	}
 

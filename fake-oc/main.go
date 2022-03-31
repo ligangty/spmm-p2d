@@ -25,5 +25,9 @@ func newRootCmd() *cobra.Command {
 	}
 	// rootCmd.AddCommand(newLoginCmd())
 	rootCmd.AddCommand(listPodsCmd())
+	rootCmd.AddCommand(listPVCsCmd())
+	rootCmd.AddCommand(listConfigMapsCmd())
+	rootCmd.AddCommand(listDeploymentsCmd())
+	rootCmd.AddCommand(listSTSCmd())
 	return rootCmd
 }

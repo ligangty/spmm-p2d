@@ -12,13 +12,13 @@ import (
 	"k8s.io/client-go/util/homedir"
 )
 
-func listPodsCmd() *cobra.Command {
+func listPVCsCmd() *cobra.Command {
 	var kubeCfg, project string
 	podsCmd := &cobra.Command{
-		Use:   "pods",
-		Short: "List pods",
+		Use:   "pvcs",
+		Short: "List PersistentVolumesClaim",
 		Run: func(cmd *cobra.Command, args []string) {
-			doListPods(kubeCfg, project)
+			doListPVCs(kubeCfg, project)
 		},
 	}
 	if home := homedir.HomeDir(); home != "" {
@@ -31,7 +31,7 @@ func listPodsCmd() *cobra.Command {
 	return podsCmd
 }
 
-func doListPods(kubeconfig, project string) {
+func doListPVCs(kubeconfig, project string) {
 
 	// use the current context in kubeconfig
 	config, err := clientcmd.BuildConfigFromFlags("", kubeconfig)
@@ -45,12 +45,12 @@ func doListPods(kubeconfig, project string) {
 		panic(err.Error())
 	}
 	namespace := project
-	pods, err := clientset.CoreV1().Pods(namespace).List(context.TODO(), metav1.ListOptions{})
+	pvcs, err := clientset.CoreV1().PersistentVolumeClaims(namespace).List(context.TODO(), metav1.ListOptions{})
 	if err != nil {
 		panic(err.Error())
 	}
-	fmt.Printf("There are %d pods in the project %s\n\n", len(pods.Items), namespace)
-	for _, p := range pods.Items {
+	fmt.Printf("There are %d Persistent Volume claims in the project %s\n\n", len(pvcs.Items), namespace)
+	for _, p := range pvcs.Items {
 		fmt.Print(p.ObjectMeta.Name + "\t")
 		fmt.Print(p.Status.Phase)
 		fmt.Println()
