@@ -2,10 +2,28 @@ package main
 
 import (
 	"strings"
+
+	"k8s.io/client-go/kubernetes"
+	"k8s.io/client-go/tools/clientcmd"
 )
 
 func IsEmptyString(str string) bool {
 	return len(strings.TrimSpace(str)) == 0
+}
+
+func GetKubeClient(kubeconfig string) *kubernetes.Clientset {
+	// use the current context in kubeconfig
+	config, err := clientcmd.BuildConfigFromFlags("", kubeconfig)
+	if err != nil {
+		panic(err.Error())
+	}
+
+	// create the clientset
+	clientset, err := kubernetes.NewForConfig(config)
+	if err != nil {
+		panic(err.Error())
+	}
+	return clientset
 }
 
 var validURLSchemes = []string{"https://", "http://", "tcp://"}
