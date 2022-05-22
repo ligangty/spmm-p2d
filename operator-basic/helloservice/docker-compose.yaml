@@ -1,0 +1,14 @@
+version: "3.9"
+services:
+    helloservice:
+        build: 
+          context: ./
+          dockerfile: ./Dockerfile
+        image: quay.io/ligangty/helloservice:latest
+        environment:
+#            - GIN_MODE=release
+            - TEMPLATE_PATH=/var/www/template.html
+        ports:
+            - 8080:8080
+        volumes:
+          - /tmp/helloworld:/var/www
