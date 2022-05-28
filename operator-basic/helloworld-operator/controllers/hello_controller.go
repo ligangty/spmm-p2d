@@ -21,12 +21,15 @@ import (
 
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
+	"k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
+	"k8s.io/apimachinery/pkg/types"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/log"
 
+	"github.com/go-logr/logr"
 	testv1alpha1 "github.com/ligangty/helloworld-operator/api/v1alpha1"
 )
 
@@ -72,13 +75,29 @@ func (r *HelloReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl
 		}
 	}
 
-	deployment := newDeploymet(hello, labels, 1)
-
-	logger.Info("Start creating Hello deployment")
-	if err := r.Client.Create(context.TODO(), deployment); err != nil {
-		logger.Error(err, "Cannot create Hello deployment")
+	configmaps, err := newConfigMap(hello, r.Client, labels, logger)
+	if err != nil {
+		logger.Error(err, "Cannot create configmaps")
 		return ctrl.Result{}, err
 	}
+	deployment := newDeploymet(hello, configmaps, labels, 1)
+
+	logger.Info("Start creating Hello deployment")
+	spacedName := types.NamespacedName{
+		Namespace: deployment.ObjectMeta.Namespace,
+		Name:      deployment.ObjectMeta.Name,
+	}
+	if err := r.Client.Get(context.TODO(), spacedName, deployment); err != nil {
+		if errors.IsNotFound(err) {
+			if err := r.Client.Create(context.TODO(), deployment); err != nil {
+				logger.Error(err, "Cannot create Hello deployment")
+				return ctrl.Result{}, err
+			}
+		} else {
+			return ctrl.Result{}, err
+		}
+	}
+
 	logger.Info("Hello deployment created")
 	return ctrl.Result{Requeue: true}, nil
 }
@@ -91,7 +110,7 @@ func (r *HelloReconciler) SetupWithManager(mgr ctrl.Manager) error {
 		Complete(r)
 }
 
-func newDeploymet(h *testv1alpha1.Hello, labels map[string]string, desiredReplicaSize int32) *appsv1.Deployment {
+func newDeploymet(h *testv1alpha1.Hello, configmaps []*corev1.ConfigMap, labels map[string]string, desiredReplicaSize int32) *appsv1.Deployment {
 	replicas := desiredReplicaSize
 	image := "quay.io/ligangty/helloservice:latest"
 
@@ -134,14 +153,97 @@ func newDeploymet(h *testv1alpha1.Hello, labels map[string]string, desiredReplic
 								Value: "/var/www/template.html",
 							},
 						},
+						VolumeMounts: newConfigMounts(configmaps),
 						// // Resources
 						// Resources: createResources(w.Spec.Resources),
 					}},
-
+					Volumes: newConfigVolumes(configmaps),
 					// ServiceAccountName: h.Spec.ServiceAccountName,
 				},
 			},
 		},
 	}
 	return deployment
+}
+
+func newConfigMap(h *testv1alpha1.Hello, client client.Client, labels map[string]string, logger logr.Logger) ([]*corev1.ConfigMap, error) {
+	cfg := &corev1.ConfigMap{
+		TypeMeta: metav1.TypeMeta{
+			APIVersion: "apps/v1",
+			Kind:       "ConfigMap",
+		},
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      h.Name,
+			Namespace: h.Namespace,
+			Labels:    labels,
+		},
+		Data: map[string]string{
+			"template.html": `
+			<html>
+				<head></head>
+				<body>
+					<h1>Hello, ${message}!</h1>
+				</body>
+			</html>
+
+			`,
+			"template.json": `
+			{
+				"message": "Hello, ${message}!"
+			}
+			
+			`,
+		},
+	}
+	spacedName := types.NamespacedName{
+		Namespace: cfg.ObjectMeta.Namespace,
+		Name:      cfg.ObjectMeta.Name,
+	}
+	if err := client.Get(context.TODO(), spacedName, cfg); err != nil {
+		if errors.IsNotFound(err) {
+			logger.Info("Resource not found")
+			if err = client.Create(context.TODO(), cfg); err != nil {
+				return nil, err
+			}
+		} else {
+			return nil, err
+		}
+	}
+
+	return []*corev1.ConfigMap{cfg}, nil
+}
+
+func newConfigMounts(cfs []*corev1.ConfigMap) []corev1.VolumeMount {
+	vols := []corev1.VolumeMount{}
+	for _, cf := range cfs {
+		vol := corev1.VolumeMount{
+			MountPath: "/var/www/",
+			Name:      "vol-" + cf.Name,
+			ReadOnly:  true,
+		}
+		vols = append(vols, vol)
+	}
+	return vols
+}
+
+func newConfigVolumes(cfs []*corev1.ConfigMap) []corev1.Volume {
+	vols := []corev1.Volume{}
+	var mode *int32 = new(int32)
+	*mode = 0420
+	for _, cf := range cfs {
+		vol := corev1.Volume{
+			Name: "vol-" + cf.Name,
+			VolumeSource: corev1.VolumeSource{
+				ConfigMap: &corev1.ConfigMapVolumeSource{
+					LocalObjectReference: corev1.LocalObjectReference{
+						Name: cf.Name,
+					},
+					DefaultMode: mode,
+				},
+			},
+		}
+		vols = append(vols, vol)
+	}
+
+	return vols
 }
