@@ -39,6 +39,8 @@ spec:
                 description: ContentConfigMap stores the configmap of content for
                   Hello service.
                 type: string
+              templateFile:
+                type: string
             type: object
           status:
             description: HelloStatus defines the observed state of Hello

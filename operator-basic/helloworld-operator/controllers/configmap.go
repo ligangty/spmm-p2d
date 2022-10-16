@@ -2,6 +2,7 @@ package controllers
 
 import (
 	"context"
+	"strings"
 
 	"github.com/go-logr/logr"
 	testv1alpha1 "github.com/ligangty/helloworld-operator/api/v1alpha1"
@@ -13,13 +14,17 @@ import (
 )
 
 func getOrNewConfigMap(ctx context.Context, h *testv1alpha1.Hello, client client.Client, labels map[string]string, logger logr.Logger) ([]*corev1.ConfigMap, error) {
+	configMapName := h.Spec.ContentConfigMap
+	if strings.TrimSpace(configMapName) == "" {
+		configMapName = h.Name
+	}
 	cfg := &corev1.ConfigMap{
 		TypeMeta: metav1.TypeMeta{
 			APIVersion: "apps/v1",
 			Kind:       "ConfigMap",
 		},
 		ObjectMeta: metav1.ObjectMeta{
-			Name:      h.Name,
+			Name:      configMapName,
 			Namespace: h.Namespace,
 			Labels:    labels,
 		},

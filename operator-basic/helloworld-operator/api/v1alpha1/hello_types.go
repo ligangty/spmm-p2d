@@ -30,6 +30,7 @@ type HelloSpec struct {
 
 	// ContentConfigMap stores the configmap of content for Hello service.
 	ContentConfigMap string `json:"contentConfigMap,omitempty"`
+	TemplateFile     string `json:"templateFile,omitempty"`
 }
 
 // HelloStatus defines the observed state of Hello

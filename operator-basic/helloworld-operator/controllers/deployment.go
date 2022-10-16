@@ -2,6 +2,7 @@ package controllers
 
 import (
 	"context"
+	"strings"
 
 	"github.com/go-logr/logr"
 	testv1alpha1 "github.com/ligangty/helloworld-operator/api/v1alpha1"
@@ -16,6 +17,10 @@ import (
 func getOrNewDeploymet(ctx context.Context, h *testv1alpha1.Hello, client client.Client, configmaps []*corev1.ConfigMap, labels map[string]string, desiredReplicaSize int32, logger logr.Logger) (*appsv1.Deployment, error) {
 	replicas := desiredReplicaSize
 	image := "quay.io/ligangty/helloservice:latest"
+	templateFile := h.Spec.TemplateFile
+	if strings.TrimSpace(templateFile) == "" {
+		templateFile = "/var/www/template.html"
+	}
 
 	deployment := &appsv1.Deployment{
 		TypeMeta: metav1.TypeMeta{
@@ -53,7 +58,7 @@ func getOrNewDeploymet(ctx context.Context, h *testv1alpha1.Hello, client client
 						Env: []corev1.EnvVar{
 							{
 								Name:  "TEMPLATE_PATH",
-								Value: "/var/www/template.html",
+								Value: templateFile,
 							},
 						},
 						VolumeMounts: newConfigMounts(configmaps),
