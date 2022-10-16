@@ -1,5 +1,5 @@
 # Build the manager binary
-FROM fedora:35
+FROM quay.io/fedora/fedora:35
 
 USER root
 
