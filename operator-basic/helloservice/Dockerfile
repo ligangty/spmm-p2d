@@ -3,7 +3,6 @@ FROM quay.io/fedora/fedora:35
 
 USER root
 
-RUN cat /etc/redhat-release
 RUN dnf install -y glibc
 
 ADD build/hello /usr/bin/hello
