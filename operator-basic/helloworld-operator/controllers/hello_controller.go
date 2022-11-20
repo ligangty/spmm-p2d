@@ -87,12 +87,13 @@ func (r *HelloReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl
 
 	// Service
 	svc, err := getOrNewService(ctx, hello, r.Client, labels, logger)
+	_ = svc //WARNING: ignore declared but not used error
 	if err != nil {
 		logger.Error(err, "Cannot create Service!")
 		return ctrl.Result{}, err
 	}
 
-	//Route
+	// Route
 	_, err = getOrNewRoute(ctx, hello, r.Client, svc.ObjectMeta.Name, r.Scheme, labels, logger)
 	if err != nil {
 		logger.Error(err, "Cannot create Route!")
@@ -112,6 +113,6 @@ func (r *HelloReconciler) SetupWithManager(mgr ctrl.Manager) error {
 	return ctrl.NewControllerManagedBy(mgr).
 		For(&testv1alpha1.Hello{}).
 		Owns(&appsv1.Deployment{}).
-		// Owns(&routev1.Route{}).
+		Owns(&routev1.Route{}).
 		Complete(r)
 }

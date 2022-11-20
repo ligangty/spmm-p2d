@@ -31,6 +31,8 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/healthz"
 	"sigs.k8s.io/controller-runtime/pkg/log/zap"
 
+	routev1 "github.com/openshift/api/route/v1"
+
 	testv1alpha1 "github.com/ligangty/helloworld-operator/api/v1alpha1"
 	"github.com/ligangty/helloworld-operator/controllers"
 	//+kubebuilder:scaffold:imports
@@ -45,6 +47,9 @@ func init() {
 	utilruntime.Must(clientgoscheme.AddToScheme(scheme))
 
 	utilruntime.Must(testv1alpha1.AddToScheme(scheme))
+
+	// Add openshift routev1
+	utilruntime.Must(routev1.AddToScheme(scheme))
 	//+kubebuilder:scaffold:scheme
 }
 
